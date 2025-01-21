@@ -15,7 +15,6 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     public static ArrayList<GameObject> GameObjects = new ArrayList<>();
     public ArrayList<GameObject.physics> rigidObjects = new ArrayList<>();
 
-
     public Engine(Boolean Focusable, Color bgColor, int width, int height, int delay) {
         this.delay = delay;
 
@@ -25,8 +24,7 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         addKeyListener(this);
 
         timer = new Timer(this.delay, this);
-        MyGame.Start();
-        timer.start();
+        timer.start();  // Start the timer immediately
     }
 
     //update graphics function
@@ -58,7 +56,8 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     }
 
     public void addRigidObject(GameObject go, double mass) {
-        rigidObjects.add(go.new physics(go.x, go.y, go.width, go.height, mass));
+        go.physicsBody = go.new physics(mass);
+        rigidObjects.add(go.physicsBody);
     }
 
     public void addKey(KeyEvent KeyEvent, Runnable action) {
@@ -83,11 +82,11 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyTyped(KeyEvent e) {}
 
-    // start
-    public static void main(String[] args) {
-        EngineConstant c = MyGame.getEngineConstants();
+    // Static method to initialize the game
+    public static void Run() {
         JFrame frame = new JFrame();
-        Engine engine = new Engine(c.Focusable, c.color, c.width, c.height, c.delay);
+        Engine engine = MyGame.MyEngine();
+        MyGame.Start();  // Call Start() after engine is fully initialized
         frame.add(engine);
         frame.pack();
         frame.setVisible(true);

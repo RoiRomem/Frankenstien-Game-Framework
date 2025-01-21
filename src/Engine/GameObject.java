@@ -6,7 +6,7 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class GameObject {
-    enum type {
+    public enum type {
         EMPTY,
         SPRITE,
         TEXT,
@@ -16,11 +16,11 @@ public class GameObject {
         ROUND_RECTANGLE
     }
 
-    public type type;
+    private type objectType;
 
     // Transform
-    public static double x;
-    public static double y;
+    public double x;
+    public double y;
     public int width;
     public int height;
     private Image image;
@@ -28,23 +28,27 @@ public class GameObject {
     public String text;
     private Font font;
 
+    // Components
+    public physics physicsBody;
+    public collider colliderBody;
+
     public GameObject(double x, double y, int width, int height) {
-        this.type = type.EMPTY;
-        GameObject.x = x;
-        GameObject.y = y;
+        this.objectType = type.EMPTY;
+        this.x = x;
+        this.y = y;
         this.width = width;
         this.height = height;
     }
 
     public void SelectShape(type type) {
-        this.type = type;
+        this.objectType = type;
     }
 
     public void addImage(Image image) {
         this.image = image;
         this.width = image.getWidth(null);
         this.height = image.getHeight(null);
-        this.type = type.SPRITE;
+        this.objectType = type.SPRITE;
     }
 
     public void addColor(Color color) {
@@ -54,13 +58,13 @@ public class GameObject {
     public void addText(String text, Font font) {
         this.text = text;
         this.font = font;
-        this.type = type.TEXT;
+        this.objectType = type.TEXT;
     }
 
     void Draw(Graphics g) {
-        if (type != type.EMPTY) {
+        if (objectType != type.EMPTY) {
             Graphics2D g2d = (Graphics2D) g;
-            switch (type) {
+            switch (objectType) {
                 case SPRITE:
                     g2d.drawImage(image, (int) x, (int) y, null);
                     break;
@@ -90,11 +94,12 @@ public class GameObject {
     }
 
     // Physics class
-    public class physics extends GameObject {
-        enum direction { RIGHT, LEFT, UP, DOWN }
+    public class physics {
+        public enum direction { RIGHT, LEFT, UP, DOWN }
 
-        public double mass; // Mass of the object (kg)
-        public double timeStep = 0.016; // Time step (for smooth updates)
+        private GameObject gameObject;
+        public double mass;
+        public double timeStep = 0.016;
         public boolean enabled = false;
 
         public double velocityX = 0;
@@ -106,15 +111,13 @@ public class GameObject {
         private double netForceX = 0;
         private double netForceY = 0;
 
-        public boolean isGravityEnabled = true;
-        public double gravity = 9.8; // Earth's gravity (m/s^2)
+        public boolean isGravityEnabled = false;
+        public double gravity = 9.8;
 
-        public double frictionCoefficient = 0.1; // Friction
+        public double frictionCoefficient = 0.1;
 
-        // I'm Limited by the technology of my time, thus I cannot comprehend the rest of this subclass I wrote here
-
-        public physics(double x, double y, int width, int height, double mass) {
-            super(x, y, width, height);
+        public physics(double mass) {
+            this.gameObject = GameObject.this;
             this.mass = mass;
             this.enabled = true;
         }
@@ -143,33 +146,26 @@ public class GameObject {
         public void updatePhysics() {
             if (!enabled) return;
 
-            // Reset forces for this frame
             netForceX = 0;
             netForceY = 0;
 
-            // Apply gravity
             if (isGravityEnabled) {
                 netForceY += mass * gravity;
             }
 
-            // Apply friction (basic implementation)
             applyFriction();
 
-            // Calculate acceleration (F = ma)
             accelerationX = netForceX / mass;
             accelerationY = netForceY / mass;
 
-            // Update velocity (v = u + at)
             velocityX += accelerationX * timeStep;
             velocityY += accelerationY * timeStep;
 
-            // Update position (s = s + vt)
-            GameObject.x += velocityX * timeStep;
-            GameObject.y += velocityY * timeStep;
+            gameObject.x += velocityX * timeStep;
+            gameObject.y += velocityY * timeStep;
         }
 
         private void applyFriction() {
-            // Oppose velocity with frictional force
             if (velocityX > 0) {
                 netForceX -= mass * gravity * frictionCoefficient;
             } else if (velocityX < 0) {
@@ -185,34 +181,37 @@ public class GameObject {
     }
 
     // Collider class
-    public class collider extends GameObject {
-        enum collisionSide {
+    public class collider {
+        public enum collisionSide {
             TOP, BOTTOM, LEFT, RIGHT, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT
         }
 
-        private int pos[] = {0, 0};
-        private int size[] = {0, 0};
-        public static int colliderBuffer;
+        private GameObject gameObject;
+        private int[] pos = new int[2];
+        private int[] size = new int[2];
+        private int colliderBuffer;
         public boolean triggerCollider = false;
         public boolean triggerCollision = false;
 
-        // this one might be understandable
-
-        public collider(int x, int y, int width, int height, int colliderBuffer) {
-            super(x, y, width, height);
-            this.pos[0] = x;
-            this.pos[1] = y;
-            this.size[0] = width;
-            this.size[1] = height;
-            collider.colliderBuffer = colliderBuffer;
+        public collider(int colliderBuffer) {
+            this.gameObject = GameObject.this;
+            this.pos[0] = (int)gameObject.x;
+            this.pos[1] = (int)gameObject.y;
+            this.size[0] = gameObject.width;
+            this.size[1] = gameObject.height;
+            this.colliderBuffer = colliderBuffer;
         }
 
         public collisionSide checkForCollision() {
-            ArrayList<GameObject> gList = Engine.GameObjects; // Assuming Engine.GameObjects contains all game objects
+            ArrayList<GameObject> gList = Engine.GameObjects;
             triggerCollision = false;
 
+            // Update position to match parent GameObject
+            pos[0] = (int)gameObject.x;
+            pos[1] = (int)gameObject.y;
+
             for (GameObject g : gList) {
-                if (g == this) continue; // Avoid self-collision
+                if (g == gameObject) continue; // Avoid self-collision
 
                 if (g.x < pos[0] + size[0] + colliderBuffer &&
                         g.x + g.width > pos[0] - colliderBuffer &&
@@ -235,12 +234,10 @@ public class GameObject {
                         if (bottomCollision) return collisionSide.BOTTOM;
                         if (leftCollision) return collisionSide.LEFT;
                         if (rightCollision) return collisionSide.RIGHT;
-                    } else {
-                        return null; // Trigger-only collision
                     }
                 }
             }
-            return null; // No collision detected
+            return null;
         }
     }
 }
