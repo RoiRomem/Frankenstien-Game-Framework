@@ -30,6 +30,7 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     //update graphics function
     @Override
     protected void paintComponent(Graphics g) {
+        repaint();
         if(!GameObjects.isEmpty()) {
             for (GameObject go : GameObjects) {
                 go.Draw(g);

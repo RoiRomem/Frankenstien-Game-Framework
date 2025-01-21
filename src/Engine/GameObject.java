@@ -1,6 +1,8 @@
 package Engine;
+
 /*
-this is probably some of the worst code I've ever written, hopefully this works and I dont have to change it because it honestly scares me 😁😁😁
+this is probably some of the worst code I've ever written, hopefully this works and I don't have to change it because it honestly scares me 😁😁😁
+thanks to chatgpt and his incredible debuging, I can't understand this monstrosity even more 😁😁😁
  */
 import java.awt.*;
 import java.util.ArrayList;
@@ -18,25 +20,60 @@ public class GameObject {
 
     private type objectType;
 
-    // Transform
-    public double x;
-    public double y;
-    public int width;
-    public int height;
+    // Transform properties
+    private double x;
+    private double y;
+    private int width;
+    private int height;
+
+    // Graphics properties
     private Image image;
     private Color color;
-    public String text;
+    private String text;
     private Font font;
 
     // Components
     public physics physicsBody;
-    public collider colliderBody;
+    private collider colliderBody;
 
     public GameObject(double x, double y, int width, int height) {
         this.objectType = type.EMPTY;
         this.x = x;
         this.y = y;
         this.width = width;
+        this.height = height;
+    }
+
+    // Getters and setters
+    public double getX() {
+        return x;
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
         this.height = height;
     }
 
@@ -61,35 +98,36 @@ public class GameObject {
         this.objectType = type.TEXT;
     }
 
-    void Draw(Graphics g) {
-        if (objectType != type.EMPTY) {
-            Graphics2D g2d = (Graphics2D) g;
-            switch (objectType) {
-                case SPRITE:
+    public void Draw(Graphics g) {
+        if (objectType == type.EMPTY) return;
+
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setColor(color != null ? color : Color.BLACK);
+
+        switch (objectType) {
+            case SPRITE:
+                if (image != null) {
                     g2d.drawImage(image, (int) x, (int) y, null);
-                    break;
-                case TEXT:
+                }
+                break;
+            case TEXT:
+                if (text != null && font != null) {
                     g2d.setFont(font);
-                    g2d.setColor(color);
                     g2d.drawString(text, (int) x, (int) y);
-                    break;
-                case RECTANGLE:
-                    g2d.setColor(color);
-                    g2d.drawRect((int) x, (int) y, width, height);
-                    break;
-                case ELLIPSE:
-                    g2d.setColor(color);
-                    g2d.drawOval((int) x, (int) y, width, height);
-                    break;
-                case LINE:
-                    g2d.setColor(color);
-                    g2d.drawLine((int) x, (int) y, (int) x, (int) y);
-                    break;
-                case ROUND_RECTANGLE:
-                    g2d.setColor(color);
-                    g2d.drawRoundRect((int) x, (int) y, width, height, 20, 20);
-                    break;
-            }
+                }
+                break;
+            case RECTANGLE:
+                g2d.drawRect((int) x, (int) y, width, height);
+                break;
+            case ELLIPSE:
+                g2d.drawOval((int) x, (int) y, width, height);
+                break;
+            case LINE:
+                g2d.drawLine((int) x, (int) y, (int) (x + width), (int) (y + height));
+                break;
+            case ROUND_RECTANGLE:
+                g2d.drawRoundRect((int) x, (int) y, width, height, 20, 20);
+                break;
         }
     }
 
@@ -112,30 +150,24 @@ public class GameObject {
         private double netForceY = 0;
 
         public boolean isGravityEnabled = false;
-        public double gravity = 9.8;
+        public static final double GRAVITY = 9.8;
+        public static final double FRICTION = 0.1;
 
-        public double frictionCoefficient = 0.1;
+        public collider colliderComponent;
 
         public physics(double mass) {
             this.gameObject = GameObject.this;
             this.mass = mass;
             this.enabled = true;
+            this.colliderComponent = new collider(1);
         }
 
         public void applyForce(direction dir, double force) {
             switch (dir) {
-                case RIGHT:
-                    netForceX += force;
-                    break;
-                case LEFT:
-                    netForceX -= force;
-                    break;
-                case UP:
-                    netForceY -= force;
-                    break;
-                case DOWN:
-                    netForceY += force;
-                    break;
+                case RIGHT -> netForceX += force;
+                case LEFT -> netForceX -= force;
+                case UP -> netForceY -= force;
+                case DOWN -> netForceY += force;
             }
         }
 
@@ -146,36 +178,92 @@ public class GameObject {
         public void updatePhysics() {
             if (!enabled) return;
 
-            netForceX = 0;
-            netForceY = 0;
-
+            // Apply gravity if enabled
             if (isGravityEnabled) {
-                netForceY += mass * gravity;
+                netForceY += mass * GRAVITY;
             }
 
             applyFriction();
 
+            // Calculate accelerations
             accelerationX = netForceX / mass;
             accelerationY = netForceY / mass;
 
+            // Update velocities
             velocityX += accelerationX * timeStep;
             velocityY += accelerationY * timeStep;
 
-            gameObject.x += velocityX * timeStep;
-            gameObject.y += velocityY * timeStep;
+            // Predict next position
+            double predictedX = gameObject.x + velocityX * timeStep;
+            double predictedY = gameObject.y + velocityY * timeStep;
+
+            // Check for collisions
+            collider.collisionSide collision = colliderComponent.checkForCollision();
+
+            if (collision != null) {
+                switch (collision) {
+                    case LEFT -> {
+                        velocityX = 0;
+                        predictedX = gameObject.x; // Prevent movement to the left
+                    }
+                    case RIGHT -> {
+                        velocityX = 0;
+                        predictedX = gameObject.x; // Prevent movement to the right
+                    }
+                    case TOP -> {
+                        velocityY = 0;
+                        predictedY = gameObject.y; // Prevent upward movement
+                    }
+                    case BOTTOM -> {
+                        velocityY = 0;
+                        predictedY = gameObject.y; // Prevent downward movement
+                    }
+                    case ALL -> {
+                        velocityX = 0;
+                        velocityY = 0;
+                        predictedX = gameObject.x;
+                        predictedY = gameObject.y;
+                    }
+                }
+            }
+
+            // Update actual position
+            gameObject.x = predictedX;
+            gameObject.y = predictedY;
         }
+
 
         private void applyFriction() {
             if (velocityX > 0) {
-                netForceX -= mass * gravity * frictionCoefficient;
+                netForceX -= mass * GRAVITY * FRICTION;
             } else if (velocityX < 0) {
-                netForceX += mass * gravity * frictionCoefficient;
+                netForceX += mass * GRAVITY * FRICTION;
             }
 
             if (velocityY > 0) {
-                netForceY -= mass * gravity * frictionCoefficient;
+                netForceY -= mass * GRAVITY * FRICTION;
             } else if (velocityY < 0) {
-                netForceY += mass * gravity * frictionCoefficient;
+                netForceY += mass * GRAVITY * FRICTION;
+            }
+        }
+
+        private void reactToCollision() {
+            collider.collisionSide side = colliderComponent.checkForCollision();
+            if (side == null) return;
+
+            switch (side) {
+                case LEFT -> velocityX = Math.abs(velocityX);
+                case RIGHT -> velocityX = -Math.abs(velocityX);
+                case TOP -> velocityY = Math.abs(velocityY);
+                case BOTTOM -> velocityY = -Math.abs(velocityY);
+                case TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT -> {
+                    velocityX = -velocityX * 0.5;
+                    velocityY = -velocityY * 0.5;
+                }
+                case ALL -> {
+                    velocityX = 0;
+                    velocityY = 0;
+                }
             }
         }
     }
@@ -183,61 +271,44 @@ public class GameObject {
     // Collider class
     public class collider {
         public enum collisionSide {
-            TOP, BOTTOM, LEFT, RIGHT, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT
+            TOP, BOTTOM, LEFT, RIGHT, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT, ALL
         }
 
         private GameObject gameObject;
-        private int[] pos = new int[2];
-        private int[] size = new int[2];
         private int colliderBuffer;
-        public boolean triggerCollider = false;
-        public boolean triggerCollision = false;
 
         public collider(int colliderBuffer) {
             this.gameObject = GameObject.this;
-            this.pos[0] = (int)gameObject.x;
-            this.pos[1] = (int)gameObject.y;
-            this.size[0] = gameObject.width;
-            this.size[1] = gameObject.height;
             this.colliderBuffer = colliderBuffer;
         }
 
         public collisionSide checkForCollision() {
             ArrayList<GameObject> gList = Engine.GameObjects;
-            triggerCollision = false;
-
-            // Update position to match parent GameObject
-            pos[0] = (int)gameObject.x;
-            pos[1] = (int)gameObject.y;
 
             for (GameObject g : gList) {
-                if (g == gameObject) continue; // Avoid self-collision
+                if (g == gameObject) continue;
 
-                if (g.x < pos[0] + size[0] + colliderBuffer &&
-                        g.x + g.width > pos[0] - colliderBuffer &&
-                        g.y < pos[1] + size[1] + colliderBuffer &&
-                        g.y + g.height > pos[1] - colliderBuffer) {
+                boolean isColliding = g.x < gameObject.x + gameObject.width + colliderBuffer &&
+                        g.x + g.width > gameObject.x - colliderBuffer &&
+                        g.y < gameObject.y + gameObject.height + colliderBuffer &&
+                        g.y + g.height > gameObject.y - colliderBuffer;
 
-                    triggerCollision = true;
+                if (isColliding) {
+                    // Determine collision side (simplified example)
+                    boolean isLeft = gameObject.x > g.x + g.width;
+                    boolean isRight = gameObject.x + gameObject.width < g.x;
+                    boolean isTop = gameObject.y > g.y + g.height;
+                    boolean isBottom = gameObject.y + gameObject.height < g.y;
 
-                    if (!triggerCollider) {
-                        boolean topCollision = pos[1] > g.y + g.height;
-                        boolean bottomCollision = pos[1] + size[1] < g.y;
-                        boolean leftCollision = pos[0] > g.x + g.width;
-                        boolean rightCollision = pos[0] + size[0] < g.x;
+                    if (isTop) return collisionSide.TOP;
+                    if (isBottom) return collisionSide.BOTTOM;
+                    if (isLeft) return collisionSide.LEFT;
+                    if (isRight) return collisionSide.RIGHT;
 
-                        if (topCollision && leftCollision) return collisionSide.TOPLEFT;
-                        if (topCollision && rightCollision) return collisionSide.TOPRIGHT;
-                        if (bottomCollision && leftCollision) return collisionSide.BOTTOMLEFT;
-                        if (bottomCollision && rightCollision) return collisionSide.BOTTOMRIGHT;
-                        if (topCollision) return collisionSide.TOP;
-                        if (bottomCollision) return collisionSide.BOTTOM;
-                        if (leftCollision) return collisionSide.LEFT;
-                        if (rightCollision) return collisionSide.RIGHT;
-                    }
+                    return collisionSide.ALL; // Fallback for complex overlaps
                 }
             }
-            return null;
+            return null; // No collision
         }
     }
 }
