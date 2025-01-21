@@ -24,37 +24,35 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         addKeyListener(this);
 
         timer = new Timer(this.delay, this);
-        timer.start();  // Start the timer immediately
+        timer.start(); // Start the timer immediately
     }
 
-    //update graphics function
+    // Update graphics function
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        repaint();
-        if(!GameObjects.isEmpty()) {
+        super.paintComponent(g); // Clears the background
+        if (!GameObjects.isEmpty()) {
             for (GameObject go : GameObjects) {
                 go.Draw(g);
             }
         }
     }
 
-    //update logic function
+    // Update logic function
     @Override
     public void actionPerformed(ActionEvent e) {
-        //engine update logic:
-        if(!rigidObjects.isEmpty()) {
-            for(GameObject.physics go : rigidObjects) {
+        // Engine update logic:
+        if (!rigidObjects.isEmpty()) {
+            for (GameObject.physics go : rigidObjects) {
                 go.updatePhysics();
             }
         }
-        MyGame.Update();
-        //apply
-        repaint();
+        MyGame.Update(); // Update game-specific logic
+        repaint(); // Trigger the paintComponent method
     }
 
     public void addGameObject(GameObject go) {
-       GameObjects.add(go);
+        GameObjects.add(go);
     }
 
     public void addRigidObject(GameObject go, double mass) {
@@ -62,25 +60,25 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         rigidObjects.add(go.physicsBody);
     }
 
-    public void addKey(KeyEvent KeyEvent, Runnable action) {
-        Keys.add(new input(action, KeyEvent));
+    public void addKey(int keyCode, Runnable action) {
+        Keys.add(new input(action, keyCode));
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        // we will go through an ArrayList that will include the inputs required and the function they trigger
         if (Keys.isEmpty()) return;
-        if (Keys.contains(e)) return;
         for (input i : Keys) {
-            if(i.keyCode == e) {
+            if (i.keyCode == e.getKeyCode()) { // Compare key codes
                 i.action.run();
+                break;
             }
         }
     }
 
-    // unused atm but required at the moment
+    // Unused but required by KeyListener
     @Override
     public void keyReleased(KeyEvent e) {}
+
     @Override
     public void keyTyped(KeyEvent e) {}
 
@@ -88,7 +86,7 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     public static void Run() {
         JFrame frame = new JFrame();
         Engine engine = MyGame.MyEngine();
-        MyGame.Start();  // Call Start() after engine is fully initialized
+        MyGame.Start(); // Call Start() after the engine is fully initialized
         frame.add(engine);
         frame.pack();
         frame.setVisible(true);

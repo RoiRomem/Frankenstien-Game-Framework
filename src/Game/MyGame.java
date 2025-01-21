@@ -2,11 +2,15 @@ package Game;
 
 import Engine.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+
 import Game.constants.player;
 
 public class MyGame {
 
     public static Engine e;
+
+    static GameObject player;
 
     // Initialize the engine constants
     public static Engine MyEngine() {
@@ -19,9 +23,13 @@ public class MyGame {
         return e;
     }
 
+
     public static void Start() {
+        e.addKey(KeyEvent.VK_SPACE, MyGame::Jump);
+
+
         // Create and add the player GameObject
-        GameObject player = new GameObject(Game.constants.player.startingPos[0],
+        player = new GameObject(Game.constants.player.startingPos[0],
                 Game.constants.player.startingPos[1],
                 Game.constants.player.size[0],
                 Game.constants.player.size[1]);
@@ -38,6 +46,11 @@ public class MyGame {
         e.addGameObject(floor);
         e.addRigidObject(floor, Game.constants.player.mass);
         // Note: floor's gravity remains disabled by default
+    }
+
+    public static void Jump() {
+        System.out.println("Jump");
+        player.physicsBody.applyForce(GameObject.physics.direction.UP, Game.constants.player.jumpForce);
     }
 
     public static void Update() {

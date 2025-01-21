@@ -1,16 +1,13 @@
 package Engine;
 
-// this class stores an input value
-// this is the only file I truly understand
-import java.awt.event.KeyEvent;
-
+// This class stores an input value
 public class input {
     Runnable action;
-    KeyEvent keyCode;
+    int keyCode;
 
-    //constructor
-    input(Runnable action, KeyEvent keyCode) {
-        this.action= action;
+    // Constructor
+    input(Runnable action, int keyCode) {
+        this.action = action;
         this.keyCode = keyCode;
     }
 }
