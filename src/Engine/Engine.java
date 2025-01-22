@@ -78,7 +78,6 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     // Unused but required by KeyListener
     @Override
     public void keyReleased(KeyEvent e) {}
-
     @Override
     public void keyTyped(KeyEvent e) {}
 

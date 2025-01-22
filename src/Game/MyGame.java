@@ -26,6 +26,8 @@ public class MyGame {
 
     public static void Start() {
         e.addKey(KeyEvent.VK_SPACE, MyGame::Jump);
+        e.addKey(KeyEvent.VK_RIGHT, MyGame::MoveRight);
+        e.addKey(KeyEvent.VK_LEFT, MyGame::MoveLeft);
 
 
         // Create and add the player GameObject
@@ -49,8 +51,15 @@ public class MyGame {
     }
 
     public static void Jump() {
-        System.out.println("Jump");
-        player.physicsBody.applyForce(GameObject.physics.direction.UP, Game.constants.player.jumpForce);
+        if (player.physicsBody.isGrounded) player.physicsBody.applyForce(GameObject.physics.direction.UP, Game.constants.player.jumpForce);
+    }
+
+    public static void MoveRight() {
+       player.physicsBody.applyForce(GameObject.physics.direction.RIGHT, Game.constants.player.speed);
+    }
+
+    public static void MoveLeft() {
+        player.physicsBody.applyForce(GameObject.physics.direction.LEFT, Game.constants.player.speed);
     }
 
     public static void Update() {

@@ -45,37 +45,14 @@ public class GameObject {
     }
 
     // Getters and setters
-    public double getX() {
-        return x;
-    }
-
-    public void setX(double x) {
-        this.x = x;
-    }
-
-    public double getY() {
-        return y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
+    public double getX() { return x; }
+    public void setX(double x) { this.x = x; }
+    public double getY() { return y; }
+    public void setY(double y) { this.y = y; }
+    public int getWidth() { return width; }
+    public void setWidth(int width) { this.width = width; }
+    public int getHeight() { return height; }
+    public void setHeight(int height) { this.height = height; }
 
     public void SelectShape(type type) {
         this.objectType = type;
@@ -117,16 +94,16 @@ public class GameObject {
                 }
                 break;
             case RECTANGLE:
-                g2d.drawRect((int) x, (int) y, width, height);
+                g2d.fillRect((int) x, (int) y, width, height);
                 break;
             case ELLIPSE:
-                g2d.drawOval((int) x, (int) y, width, height);
+                g2d.fillOval((int) x, (int) y, width, height);
                 break;
             case LINE:
                 g2d.drawLine((int) x, (int) y, (int) (x + width), (int) (y + height));
                 break;
             case ROUND_RECTANGLE:
-                g2d.drawRoundRect((int) x, (int) y, width, height, 20, 20);
+                g2d.fillRoundRect((int) x, (int) y, width, height, 20, 20);
                 break;
         }
     }
@@ -150,10 +127,11 @@ public class GameObject {
         private double netForceY = 0;
 
         public boolean isGravityEnabled = false;
-        public static final double GRAVITY = 9.8;
+        public static final double GRAVITY = 9.8 * 60;
         public static final double FRICTION = 0.1;
 
         public collider colliderComponent;
+        public boolean isGrounded = false;
 
         public physics(double mass) {
             this.gameObject = GameObject.this;
@@ -166,7 +144,10 @@ public class GameObject {
             switch (dir) {
                 case RIGHT -> netForceX += force;
                 case LEFT -> netForceX -= force;
-                case UP -> netForceY -= force;
+                case UP -> {
+                    System.out.println("Jump requested, isGrounded: " + isGrounded); // Debug print
+                    netForceY -= force; // Allow jump attempt regardless of grounded state
+                }
                 case DOWN -> netForceY += force;
             }
         }
@@ -183,7 +164,10 @@ public class GameObject {
                 netForceY += mass * GRAVITY;
             }
 
-            applyFriction();
+            // Apply friction when grounded
+            if (isGrounded) {
+                applyFriction();
+            }
 
             // Calculate accelerations
             accelerationX = netForceX / mass;
@@ -193,86 +177,52 @@ public class GameObject {
             velocityX += accelerationX * timeStep;
             velocityY += accelerationY * timeStep;
 
-            // Predict next position
-            double predictedX = gameObject.x + velocityX * timeStep;
-            double predictedY = gameObject.y + velocityY * timeStep;
+            // Reset net forces
+            netForceX = 0;
+            netForceY = 0;
 
-            // Check for collisions
+            // Store original position
+            double originalX = gameObject.x;
+            double originalY = gameObject.y;
+
+            // Try movement with collision checks
+            double newX = originalX + velocityX * timeStep;
+            double newY = originalY + velocityY * timeStep;
+
+            // Move X
+            gameObject.x = newX;
+            if (colliderComponent.checkForCollision() != null) {
+                gameObject.x = originalX;
+                velocityX = 0;
+            }
+
+            // Move Y
+            double oldY = gameObject.y;
+            gameObject.y = newY;
             collider.collisionSide collision = colliderComponent.checkForCollision();
 
             if (collision != null) {
-                switch (collision) {
-                    case LEFT -> {
-                        velocityX = 0;
-                        predictedX = gameObject.x; // Prevent movement to the left
-                    }
-                    case RIGHT -> {
-                        velocityX = 0;
-                        predictedX = gameObject.x; // Prevent movement to the right
-                    }
-                    case TOP -> {
-                        velocityY = 0;
-                        predictedY = gameObject.y; // Prevent upward movement
-                    }
-                    case BOTTOM -> {
-                        velocityY = 0;
-                        predictedY = gameObject.y; // Prevent downward movement
-                    }
-                    case ALL -> {
-                        velocityX = 0;
-                        velocityY = 0;
-                        predictedX = gameObject.x;
-                        predictedY = gameObject.y;
-                    }
-                }
+                gameObject.y = oldY;
+                velocityY = 0;
+                isGrounded = true;
+                System.out.println("Collision detected, setting grounded"); // Debug print
+            } else {
+                    isGrounded = false;
             }
-
-            // Update actual position
-            gameObject.x = predictedX;
-            gameObject.y = predictedY;
         }
-
 
         private void applyFriction() {
-            if (velocityX > 0) {
-                netForceX -= mass * GRAVITY * FRICTION;
-            } else if (velocityX < 0) {
-                netForceX += mass * GRAVITY * FRICTION;
-            }
-
-            if (velocityY > 0) {
-                netForceY -= mass * GRAVITY * FRICTION;
-            } else if (velocityY < 0) {
-                netForceY += mass * GRAVITY * FRICTION;
-            }
-        }
-
-        private void reactToCollision() {
-            collider.collisionSide side = colliderComponent.checkForCollision();
-            if (side == null) return;
-
-            switch (side) {
-                case LEFT -> velocityX = Math.abs(velocityX);
-                case RIGHT -> velocityX = -Math.abs(velocityX);
-                case TOP -> velocityY = Math.abs(velocityY);
-                case BOTTOM -> velocityY = -Math.abs(velocityY);
-                case TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT -> {
-                    velocityX = -velocityX * 0.5;
-                    velocityY = -velocityY * 0.5;
-                }
-                case ALL -> {
-                    velocityX = 0;
-                    velocityY = 0;
-                }
+            if (Math.abs(velocityX) > 0.1) {
+                double frictionForce = -Math.signum(velocityX) * mass * GRAVITY * FRICTION;
+                netForceX += frictionForce;
+            } else {
+                velocityX = 0;
             }
         }
     }
 
-    // Collider class
     public class collider {
-        public enum collisionSide {
-            TOP, BOTTOM, LEFT, RIGHT, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT, ALL
-        }
+        public enum collisionSide { TOP, BOTTOM, LEFT, RIGHT }
 
         private GameObject gameObject;
         private int colliderBuffer;
@@ -283,32 +233,43 @@ public class GameObject {
         }
 
         public collisionSide checkForCollision() {
-            ArrayList<GameObject> gList = Engine.GameObjects;
+            for (GameObject other : Engine.GameObjects) {
+                if (other == gameObject) continue;
+                if (other.physicsBody == null) continue;
 
-            for (GameObject g : gList) {
-                if (g == gameObject) continue;
+                // Calculate edges of both objects
+                double thisLeft = gameObject.x;
+                double thisRight = gameObject.x + gameObject.width;
+                double thisTop = gameObject.y;
+                double thisBottom = gameObject.y + gameObject.height;
 
-                boolean isColliding = g.x < gameObject.x + gameObject.width + colliderBuffer &&
-                        g.x + g.width > gameObject.x - colliderBuffer &&
-                        g.y < gameObject.y + gameObject.height + colliderBuffer &&
-                        g.y + g.height > gameObject.y - colliderBuffer;
+                double otherLeft = other.x;
+                double otherRight = other.x + other.width;
+                double otherTop = other.y;
+                double otherBottom = other.y + other.height;
 
-                if (isColliding) {
-                    // Determine collision side (simplified example)
-                    boolean isLeft = gameObject.x > g.x + g.width;
-                    boolean isRight = gameObject.x + gameObject.width < g.x;
-                    boolean isTop = gameObject.y > g.y + g.height;
-                    boolean isBottom = gameObject.y + gameObject.height < g.y;
+                // Check for overlap
+                if (thisRight > otherLeft && thisLeft < otherRight &&
+                        thisBottom > otherTop && thisTop < otherBottom) {
 
-                    if (isTop) return collisionSide.TOP;
-                    if (isBottom) return collisionSide.BOTTOM;
-                    if (isLeft) return collisionSide.LEFT;
-                    if (isRight) return collisionSide.RIGHT;
+                    // Calculate overlap amounts
+                    double overlapLeft = thisRight - otherLeft;
+                    double overlapRight = otherRight - thisLeft;
+                    double overlapTop = thisBottom - otherTop;
+                    double overlapBottom = otherBottom - thisTop;
 
-                    return collisionSide.ALL; // Fallback for complex overlaps
+                    // Find smallest overlap
+                    double smallestOverlap = Math.min(Math.min(overlapLeft, overlapRight),
+                            Math.min(overlapTop, overlapBottom));
+
+                    // Return the direction of the smallest overlap
+                    if (smallestOverlap == overlapLeft) return collisionSide.LEFT;
+                    if (smallestOverlap == overlapRight) return collisionSide.RIGHT;
+                    if (smallestOverlap == overlapTop) return collisionSide.BOTTOM;
+                    if (smallestOverlap == overlapBottom) return collisionSide.TOP;
                 }
             }
-            return null; // No collision
+            return null;
         }
     }
 }
