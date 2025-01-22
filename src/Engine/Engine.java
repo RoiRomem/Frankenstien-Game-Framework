@@ -1,55 +1,31 @@
 package Engine;
 
-import Game.*;
-
-import javax.swing.*; // Provides GUI components like JPanel, JFrame, and Timer
 import java.awt.*;
-import java.awt.event.*; // Provides event-handling classes (e.g., ActionListener, KeyListener)
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
-public class Engine extends JPanel implements ActionListener, KeyListener {
+public class Engine extends JPanel implements ActionListener {
     private Timer timer;
     private final int delay;
+    private GameInterface gameClass;  // Reference to the game class
 
-    private ArrayList<input> Keys = new ArrayList<>();
     public static ArrayList<GameObject> GameObjects = new ArrayList<>();
     public ArrayList<GameObject.physics> rigidObjects = new ArrayList<>();
 
-    public Engine(Boolean Focusable, Color bgColor, int width, int height, int delay) {
+    public Engine(Boolean Focusable, Color bgColor, int width, int height, int delay, GameInterface gameClass) {
         this.delay = delay;
+        this.gameClass = gameClass;
 
         setFocusable(Focusable);
         setBackground(bgColor);
         setPreferredSize(new Dimension(width, height));
-        addKeyListener(this);
 
         timer = new Timer(this.delay, this);
         timer.start(); // Start the timer immediately
     }
 
-    // Update graphics function
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // Clears the background
-        if (!GameObjects.isEmpty()) {
-            for (GameObject go : GameObjects) {
-                go.Draw(g);
-            }
-        }
-    }
-
-    // Update logic function
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        // Engine update logic:
-        if (!rigidObjects.isEmpty()) {
-            for (GameObject.physics go : rigidObjects) {
-                go.updatePhysics();
-            }
-        }
-        MyGame.Update(); // Update game-specific logic
-        repaint(); // Trigger the paintComponent method
-    }
 
     public void addGameObject(GameObject go) {
         GameObjects.add(go);
@@ -60,35 +36,27 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         rigidObjects.add(go.physicsBody);
     }
 
-    public void addKey(int keyCode, Runnable action) {
-        Keys.add(new input(action, keyCode));
-    }
-
+    //Update logic
     @Override
-    public void keyPressed(KeyEvent e) {
-        if (Keys.isEmpty()) return;
-        for (input i : Keys) {
-            if (i.keyCode == e.getKeyCode()) { // Compare key codes
-                i.action.run();
-                break;
+    public void actionPerformed(ActionEvent e) {
+        if (!rigidObjects.isEmpty()) {
+            for (GameObject.physics go : rigidObjects) {
+                go.updatePhysics();
             }
         }
+        gameClass.Update(); // Call Update method of custom game class
+        repaint(); // Trigger the paintComponent method
     }
 
-    // Unused but required by KeyListener
-    @Override
-    public void keyReleased(KeyEvent e) {}
-    @Override
-    public void keyTyped(KeyEvent e) {}
-
-    // Static method to initialize the game
-    public static void Run() {
+    public static void Run(GameInterface gameClass) {
         JFrame frame = new JFrame();
-        Engine engine = MyGame.MyEngine();
-        MyGame.Start(); // Call Start() after the engine is fully initialized
+        Engine engine = new Engine(true, Color.WHITE, 800, 600, 16, gameClass);
+        gameClass.Start(); // Call Start method of custom game class
         frame.add(engine);
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
+
+
 }
