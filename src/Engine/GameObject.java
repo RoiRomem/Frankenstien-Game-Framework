@@ -144,10 +144,7 @@ public class GameObject {
             switch (dir) {
                 case RIGHT -> netForceX += force;
                 case LEFT -> netForceX -= force;
-                case UP -> {
-                    System.out.println("Jump requested, isGrounded: " + isGrounded); // Debug print
-                    netForceY -= force; // Allow jump attempt regardless of grounded state
-                }
+                case UP -> netForceY -= force;
                 case DOWN -> netForceY += force;
             }
         }
@@ -205,7 +202,6 @@ public class GameObject {
                 gameObject.y = oldY;
                 velocityY = 0;
                 isGrounded = true;
-                System.out.println("Collision detected, setting grounded"); // Debug print
             } else {
                     isGrounded = false;
             }

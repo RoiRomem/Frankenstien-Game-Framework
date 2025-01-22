@@ -4,8 +4,6 @@ import Engine.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 
-import Game.constants.player;
-
 public class MyGame {
 
     public static Engine e;
@@ -48,6 +46,14 @@ public class MyGame {
         e.addGameObject(floor);
         e.addRigidObject(floor, Game.constants.player.mass);
         // Note: floor's gravity remains disabled by default
+
+        // create a wall for testing:
+        GameObject wall = new GameObject(200, 350, 20, 50);
+        wall.SelectShape(GameObject.type.RECTANGLE);
+        wall.addColor(Color.darkGray);
+        e.addGameObject(wall);
+        e.addRigidObject(wall, Game.constants.player.mass);
+        // Note: wall's gravity remains disabled by default
     }
 
     public static void Jump() {
