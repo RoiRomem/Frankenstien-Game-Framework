@@ -140,7 +140,7 @@ public class GameObject {
             this.colliderComponent = new collider(1);
         }
 
-        public void applyForce(direction dir, double force) {
+        public void AddForce(direction dir, double force) {
             switch (dir) {
                 case RIGHT -> netForceX += force;
                 case LEFT -> netForceX -= force;
@@ -151,6 +151,11 @@ public class GameObject {
 
         public void toggleGravity() {
             isGravityEnabled = !isGravityEnabled;
+        }
+
+        public void resetNetForce() {
+            netForceX = 0;
+            netForceY = 0;
         }
 
         public void updatePhysics() {

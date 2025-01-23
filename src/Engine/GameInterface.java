@@ -1,6 +1,6 @@
 package Engine;
 
 public interface GameInterface {
-    void Start();
-    void Update();
+    void Start(Engine e);
+    void Update(Engine e);
 }
