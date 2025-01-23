@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class Engine extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
     private final int delay;
-    private GameInterface gameClass;  // Reference to the game class
+    public GameInterface gameClass;  // Reference to the game class
 
     public static ArrayList<GameObject> GameObjects = new ArrayList<>();
     public ArrayList<GameObject.physics> rigidObjects = new ArrayList<>();
@@ -59,11 +59,13 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
+        Camera.DrawingCamera( (Graphics2D) g );
         // Render all game objects
         for (GameObject go : GameObjects) {
             go.Draw(g);
         }
+
+        Camera.CameraUpdate( (Graphics2D) g);
     }
 
     @Override

@@ -1,9 +1,7 @@
 package Game;
 
-import Game.constants.player;
 import Engine.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
 
 import static java.awt.event.KeyEvent.*;
 
