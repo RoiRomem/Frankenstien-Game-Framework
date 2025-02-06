@@ -4,11 +4,9 @@ import Game.GameInfo;
 
 import java.awt.*;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Engine extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
@@ -16,24 +14,24 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     public GameInterface gameClass;  // Reference to the game class
 
     public static ArrayList<GameObject> GameObjects = new ArrayList<>();
-    public ArrayList<GameObject.physics> rigidObjects = new ArrayList<>();
-    private ArrayList<input> PressedKeys = new ArrayList<>();
-    private ArrayList<input> ReleasedKeys = new ArrayList<>();
-    private ArrayList<input> TypedKeys = new ArrayList<>();
+    public ArrayList<GameObject.physics> rigidObjects = new ArrayList<GameObject.physics>();
+
+    private HashMap<Integer, input> PressedKeys = new HashMap<>();
+    private HashMap<Integer, input> ReleasedKeys = new HashMap<>();
+    private HashMap<Integer, input> TypedKeys = new HashMap<>();
 
     public Engine(Boolean Focusable, Color bgColor, int width, int height, int delay, GameInterface gameClass) {
         this.delay = delay;
         this.gameClass = gameClass;
 
-        setFocusable(true);  // Always set to true
-        requestFocusInWindow();  // Request focus
+        setFocusable(true);
+        requestFocusInWindow();
         setBackground(bgColor);
         setPreferredSize(new Dimension(width, height));
 
         timer = new Timer(this.delay, this);
         timer.start();
     }
-
 
     public void addGameObject(GameObject go) {
         GameObjects.add(go);
@@ -44,7 +42,7 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         rigidObjects.add(go.physicsBody);
     }
 
-    //Update logic
+    // Update logic
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!rigidObjects.isEmpty()) {
@@ -59,61 +57,48 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Camera.DrawingCamera( (Graphics2D) g );
+        Camera.DrawingCamera((Graphics2D) g);
+
         // Render all game objects
         for (GameObject go : GameObjects) {
             go.Draw(g);
         }
 
-        Camera.CameraUpdate( (Graphics2D) g);
+        Camera.CameraUpdate((Graphics2D) g);
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (PressedKeys.isEmpty()) return;
-        for (input i : PressedKeys) {
-            if (i.keyCode == e.getKeyCode()) { // Compare key codes
-                i.action.run();
-                break;
-            }
+        if (PressedKeys.containsKey(e.getKeyCode())) {
+            PressedKeys.get(e.getKeyCode()).action.run();
         }
     }
 
-    // Unused but required by KeyListener
     @Override
     public void keyReleased(KeyEvent e) {
-        if (ReleasedKeys.isEmpty()) return;
-        for (input i : ReleasedKeys) {
-            if (i.keyCode == e.getKeyCode()) {
-                i.action.run();
-                break;
-            }
+        if (ReleasedKeys.containsKey(e.getKeyCode())) {
+            ReleasedKeys.get(e.getKeyCode()).action.run();
         }
     }
 
     @Override
     public void keyTyped(KeyEvent e) {
-        if (TypedKeys.isEmpty()) return;
-        for (input i : TypedKeys) {
-            if (i.keyCode == e.getKeyCode()) {
-                i.action.run();
-                break;
-            }
+        if (TypedKeys.containsKey(e.getKeyCode())) {
+            TypedKeys.get(e.getKeyCode()).action.run();
         }
     }
 
-
     public void addPressedKey(int keyCode, Runnable action) {
-       PressedKeys.add(new input(action, keyCode));
-   }
+        PressedKeys.put(keyCode, new input(action, keyCode));
+    }
 
-   public void addReleasedKey(int keyCode, Runnable action) {
-        ReleasedKeys.add(new input(action, keyCode));
-   }
+    public void addReleasedKey(int keyCode, Runnable action) {
+        ReleasedKeys.put(keyCode, new input(action, keyCode));
+    }
 
-   public void addTypedKey(int keyCode, Runnable action) {
-        TypedKeys.add(new input(action, keyCode));
-   }
+    public void addTypedKey(int keyCode, Runnable action) {
+        TypedKeys.put(keyCode, new input(action, keyCode));
+    }
 
     public static void Run(GameInterface gameClassPar) {
         JFrame frame = new JFrame();
@@ -129,6 +114,4 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
-
-
 }
