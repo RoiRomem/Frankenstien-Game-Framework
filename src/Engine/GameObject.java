@@ -5,7 +5,7 @@ this is probably some of the worst code I've ever written, hopefully this works 
 thanks to chatgpt and his incredible debuging, I can't understand this monstrosity even more 😁😁😁
  */
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.Map;
 
 public class GameObject {
     public enum type {
@@ -34,7 +34,6 @@ public class GameObject {
 
     // Components
     public physics physicsBody;
-    private collider colliderBody;
 
     public GameObject(double x, double y, int width, int height) {
         this.objectType = type.EMPTY;
@@ -226,17 +225,15 @@ public class GameObject {
         public enum collisionSide { TOP, BOTTOM, LEFT, RIGHT }
 
         private GameObject gameObject;
-        private int colliderBuffer;
 
         public collider(int colliderBuffer) {
             this.gameObject = GameObject.this;
-            this.colliderBuffer = colliderBuffer;
         }
 
         public collisionSide checkForCollision() {
-            for (GameObject other : Engine.GameObjects) {
-                if (other == gameObject) continue;
-                if (other.physicsBody == null) continue;
+            for (Map.Entry<GameObject, Byte> other : Engine.GameObjects.entrySet()) {
+                if (other.getKey() == gameObject) continue;
+                if (other.getKey().physicsBody == null) continue;
 
                 // Calculate edges of both objects
                 double thisLeft = gameObject.x;
@@ -244,10 +241,10 @@ public class GameObject {
                 double thisTop = gameObject.y;
                 double thisBottom = gameObject.y + gameObject.height;
 
-                double otherLeft = other.x;
-                double otherRight = other.x + other.width;
-                double otherTop = other.y;
-                double otherBottom = other.y + other.height;
+                double otherLeft = other.getKey().x;
+                double otherRight = other.getKey().x + other.getKey().width;
+                double otherTop = other.getKey().y;
+                double otherBottom = other.getKey().y + other.getKey().height;
 
                 // Check for overlap
                 if (thisRight > otherLeft && thisLeft < otherRight &&

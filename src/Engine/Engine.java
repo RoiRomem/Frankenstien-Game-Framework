@@ -5,16 +5,16 @@ import Game.GameInfo;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Engine extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
     private final int delay;
     public GameInterface gameClass;  // Reference to the game class
 
-    public static ArrayList<GameObject> GameObjects = new ArrayList<>();
-    public ArrayList<GameObject.physics> rigidObjects = new ArrayList<GameObject.physics>();
+    public static HashMap<GameObject, Byte> GameObjects = new HashMap<>();
+    public HashMap<GameObject.physics, Byte> rigidObjects = new HashMap<>();
 
     private HashMap<Integer, input> PressedKeys = new HashMap<>();
     private HashMap<Integer, input> ReleasedKeys = new HashMap<>();
@@ -34,20 +34,27 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     }
 
     public void addGameObject(GameObject go) {
-        GameObjects.add(go);
+        GameObjects.put(go, (byte) 0);
     }
 
     public void addRigidObject(GameObject go, double mass) {
         go.physicsBody = go.new physics(mass);
-        rigidObjects.add(go.physicsBody);
+        rigidObjects.put(go.physicsBody, (byte) 0); //lowkey using a byte just so I can use a sigma map
+    }
+
+    public void destory(GameObject go) {
+        GameObjects.remove(go);
+        if(go.physicsBody != null) {
+            rigidObjects.remove(go.physicsBody);
+        }
     }
 
     // Update logic
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!rigidObjects.isEmpty()) {
-            for (GameObject.physics go : rigidObjects) {
-                go.updatePhysics();
+            for (Map.Entry<GameObject.physics, Byte> entry : rigidObjects.entrySet()) {
+                entry.getKey().updatePhysics();
             }
         }
         gameClass.Update(this); // Call Update method of custom game class
@@ -60,8 +67,8 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
         Camera.DrawingCamera((Graphics2D) g);
 
         // Render all game objects
-        for (GameObject go : GameObjects) {
-            go.Draw(g);
+        for (Map.Entry<GameObject, Byte> entry : GameObjects.entrySet()) {
+            entry.getKey().Draw(g);
         }
 
         Camera.CameraUpdate((Graphics2D) g);
@@ -99,6 +106,9 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     public void addTypedKey(int keyCode, Runnable action) {
         TypedKeys.put(keyCode, new input(action, keyCode));
     }
+
+
+
 
     public static void Run(GameInterface gameClassPar) {
         JFrame frame = new JFrame();
