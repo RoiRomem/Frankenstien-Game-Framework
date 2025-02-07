@@ -5,6 +5,7 @@ import Game.GameInfo;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,8 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
     private final int delay;
     public GameInterface gameClass;  // Reference to the game class
+    private sceneManager SceneManager = new sceneManager();
+    private int lastFrameScene = -1;
 
     public static HashMap<GameObject, Byte> GameObjects = new HashMap<>();
     public HashMap<GameObject.physics, Byte> rigidObjects = new HashMap<>();
@@ -39,7 +42,7 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
 
     public void addRigidObject(GameObject go, double mass) {
         go.physicsBody = go.new physics(mass);
-        rigidObjects.put(go.physicsBody, (byte) 0); //lowkey using a byte just so I can use a sigma map
+        rigidObjects.put(go.physicsBody, (byte) 0); //lowkey using a byte just so I can use a sigma map, editor note: very sigma note
     }
 
     public void destory(GameObject go) {
@@ -52,13 +55,26 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     // Update logic
     @Override
     public void actionPerformed(ActionEvent e) {
+        // IDE told me to do this error handling
+        try {
+            SceneManager.run();
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException ex) {
+            throw new RuntimeException(ex);
+        }
+
         if (!rigidObjects.isEmpty()) {
             for (Map.Entry<GameObject.physics, Byte> entry : rigidObjects.entrySet()) {
                 entry.getKey().updatePhysics();
             }
         }
+
         gameClass.Update(this); // Call Update method of custom game class
+        try {
+            SceneManager.update().run(); // scene run
+        } catch (Exception _) {}
         repaint(); // Trigger the paintComponent method
+        if(lastFrameScene != SceneManager.getSceneId()) SceneManager.start();
+        lastFrameScene = SceneManager.getSceneId();
     }
 
     @Override

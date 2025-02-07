@@ -46,6 +46,12 @@ public class MyGame implements GameInterface {
         }
     }
 
+    @Override
+    public int currentScene() {
+        return 0;
+    }
+
+
     public static void Jump() {
         if(player.physicsBody.isGrounded) player.physicsBody.AddForce(GameObject.physics.direction.UP, Game.constants.player.jumpForce);
     }
