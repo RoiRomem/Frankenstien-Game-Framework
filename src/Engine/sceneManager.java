@@ -38,13 +38,12 @@ public class sceneManager {
         scenes.remove(sceneId);
     }
 
-    public Runnable update() {
-        return () -> scenes.get(sceneId).update();
+    public void update(Engine e) {
+        scenes.get(sceneId).update(e);
     }
 
-    public Runnable start() {
-        if(scenes.get(sceneId) != null) return () -> scenes.get(sceneId).start();
-        else return null;
+    public void start(Engine e) {
+        if(scenes.get(sceneId) != null) scenes.get(sceneId).start(e);
     }
 
     public int getSceneId() {

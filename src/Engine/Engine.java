@@ -70,10 +70,10 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
 
         gameClass.Update(this); // Call Update method of custom game class
         try {
-            SceneManager.update(); // scene run
+            SceneManager.update(this); // scene run
         } catch (Exception _) {}
         repaint(); // Trigger the paintComponent method
-        if(lastFrameScene != SceneManager.getSceneId()) SceneManager.start();
+        if(lastFrameScene != SceneManager.getSceneId()) SceneManager.start(this);
         lastFrameScene = SceneManager.getSceneId();
     }
 

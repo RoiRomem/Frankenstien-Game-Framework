@@ -1,6 +1,6 @@
 package Engine;
 
 public interface Scene {
-    void update();
-    void start();
+    void update(Engine e);
+    void start(Engine e);
 }
