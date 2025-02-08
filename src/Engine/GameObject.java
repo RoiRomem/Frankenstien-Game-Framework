@@ -111,7 +111,7 @@ public class GameObject {
     public class physics {
         public enum direction { RIGHT, LEFT, UP, DOWN }
 
-        private GameObject gameObject;
+        private final GameObject gameObject;
         public double mass;
         public double timeStep = 0.016;
         public boolean enabled = false;
@@ -126,8 +126,8 @@ public class GameObject {
         private double netForceY = 0;
 
         public boolean isGravityEnabled = false;
-        public static final double GRAVITY = 9.8 * 60;
-        public static final double FRICTION = 0.1;
+        public static double GRAVITY = 9.8 * PhysicsConstants.GRAVITY_MULTIPLIER;
+        public static double FRICTION = PhysicsConstants.FRICTION_MULTIPLIER;
 
         public collider colliderComponent;
         public boolean isGrounded = false;
@@ -218,6 +218,22 @@ public class GameObject {
             } else {
                 velocityX = 0;
             }
+        }
+
+        public double getFRICTION() {
+            return FRICTION;
+        }
+
+        public void setFRICTION(double friction) {
+            FRICTION = friction;
+        }
+
+        public void setGRAVITY(double gravity) {
+            GRAVITY = gravity;
+        }
+
+        public double getGRAVITY() {
+            return GRAVITY;
         }
     }
 
