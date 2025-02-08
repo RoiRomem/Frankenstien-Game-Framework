@@ -49,4 +49,25 @@ public class sceneManager {
     public int getSceneId() {
         return sceneId;
     }
+
+    public Scene sceneMaker(String className) {
+
+        try {
+            // Use reflection to dynamically load and instantiate the game class
+            Class<?> sceneName = Class.forName("Game."+className);
+
+            // Ensure the class implements GameInterface
+            if (Scene.class.isAssignableFrom(sceneName)) {
+                // Instantiate the game class
+                return (Scene) sceneName.getDeclaredConstructor().newInstance();
+            } else {
+                System.err.println("Error: The class does not implement Scene interface.");
+            }
+        } catch (Exception e) {
+            // Handle errors (e.g., class not found, instantiation failure, etc.)
+            System.err.println("Error initializing game class: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
