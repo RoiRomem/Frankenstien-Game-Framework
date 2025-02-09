@@ -1,6 +1,7 @@
 package Game.Scenes;
 
 import Engine.*;
+import Engine.extras.tileMap;
 import java.awt.*;
 import static java.awt.event.KeyEvent.*;
 
@@ -23,6 +24,13 @@ public class MainScene implements Scene {
         floor.addColor(Color.darkGray);
         e.addGameObject(floor);
         e.addRigidObject(floor, 200);
+
+        // tileMap testing
+        GameObject gameObject = new GameObject(0,0, 0,0);
+        gameObject.SelectShape(GameObject.type.RECTANGLE);
+        gameObject.addColor(Color.yellow);
+        tileMap TileMap = new tileMap(e, 20, 20, 10, 10);
+        TileMap.setTile(5, 5, gameObject);
 
         e.addPressedKey(VK_SPACE, MainScene::Jump);
         e.addPressedKey(VK_RIGHT, MainScene::MoveRight);

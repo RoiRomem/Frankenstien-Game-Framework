@@ -13,7 +13,7 @@ public class tileMap {
     public boolean hasCollider = true;
     public int tileMass = 100;
 
-    tileMap(Engine engine, int tileX, int tileY, int mapWidth, int mapHeight) {
+    public tileMap(Engine engine, int tileX, int tileY, int mapWidth, int mapHeight) {
         this.e = engine;
         this.tileX = tileX;
         this.tileY = tileY;
@@ -25,7 +25,7 @@ public class tileMap {
         this.tileMap = new GameObject[mapWidth*mapHeight]; // Access via: tilemap[row * COLS + col]
     }
 
-    tileMap(Engine engine, int tileX, int tileY, int mapWidth, int mapHeight, int mapStartX, int mapStartY) {
+    public tileMap(Engine engine, int tileX, int tileY, int mapWidth, int mapHeight, int mapStartX, int mapStartY) {
         this.e = engine;
         this.tileX = tileX;
         this.tileY = tileY;
@@ -37,7 +37,7 @@ public class tileMap {
         tileMap = new GameObject[mapWidth*mapHeight];
     }
 
-    void setTile(int x, int y, GameObject tile) {
+    public void setTile(int x, int y, GameObject tile) {
         tile.setHeight(tileY);
         tile.setWidth(tileX);
         tile.setX(mapStartX+tileX*x);
@@ -49,11 +49,11 @@ public class tileMap {
         }
     }
 
-    GameObject getTile(int x, int y) {
+    public GameObject getTile(int x, int y) {
         return tileMap[x*mapWidth+y];
     }
 
-    void removeTile(int x, int y) {
+    public void removeTile(int x, int y) {
         tileMap[x*mapWidth+y] = null;
     }
 }
