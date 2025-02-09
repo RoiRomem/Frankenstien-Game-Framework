@@ -12,8 +12,8 @@ public class MainScene implements Scene {
     public void start(Engine e) {
         // Create and add the player GameObject
         player = new GameObject(Game.constants.player.startingPos[0], Game.constants.player.startingPos[1], Game.constants.player.size[0], Game.constants.player.size[1]);
-        player.SelectShape(GameObject.type.RECTANGLE);
-        player.addColor(Color.BLACK);
+        player.SelectShape(GameObject.type.SPRITE);
+        player.addImage(Engine.AssetManager.getAsset("Player"));
         e.addGameObject(player);
         e.addRigidObject(player, Game.constants.player.mass);
         player.physicsBody.toggleGravity();  // Enable gravity for player
@@ -32,7 +32,10 @@ public class MainScene implements Scene {
         tileMap TileMap = new tileMap(e, 20, 20, 10, 10);
         TileMap.setTile(5, 5, gameObject);
 
-
+        e.addPressedKey(VK_LEFT, MainScene::MoveLeft);
+        e.addPressedKey(VK_RIGHT, MainScene::MoveRight);
+        e.addPressedKey(VK_SPACE, MainScene::Jump);
+        e.addReleasedKey(VK_R, MainScene::respawn);
     }
 
     @Override

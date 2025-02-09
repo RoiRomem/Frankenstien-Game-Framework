@@ -14,6 +14,7 @@ public class Engine extends JPanel implements ActionListener, KeyListener {
     private final int delay;
     public GameInterface gameClass;  // Reference to the game class
     public static final sceneManager SceneManager = new sceneManager();
+    public static final AssetManager AssetManager = new AssetManager();
     private int lastFrameScene = -1;
 
     public static HashMap<GameObject, Byte> GameObjects = new HashMap<>();
