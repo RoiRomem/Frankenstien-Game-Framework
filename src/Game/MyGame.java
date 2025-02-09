@@ -4,9 +4,6 @@ import Engine.*;
 
 
 public class MyGame implements GameInterface {
-
-
-
     @Override
     public void Start(Engine e) {
         Engine.SceneManager.addScene(0, Engine.SceneManager.sceneMaker("Scenes.MainScene"));

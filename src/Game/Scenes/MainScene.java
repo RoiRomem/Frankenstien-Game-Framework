@@ -32,10 +32,7 @@ public class MainScene implements Scene {
         tileMap TileMap = new tileMap(e, 20, 20, 10, 10);
         TileMap.setTile(5, 5, gameObject);
 
-        e.addPressedKey(VK_SPACE, MainScene::Jump);
-        e.addPressedKey(VK_RIGHT, MainScene::MoveRight);
-        e.addPressedKey(VK_LEFT, MainScene::MoveLeft);
-        e.addReleasedKey(VK_R, MainScene::respawn);
+
     }
 
     @Override
